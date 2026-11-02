@@ -1,0 +1,30 @@
+[
+    {
+        "id_producto": "D001",
+        "nombre": "Sensor de Humedad Eco",
+        "precio": 120.5,
+        "stock": 15
+    },
+    {
+        "id_producto": "D002",
+        "nombre": "Medidor de Calidad de Aire",
+        "precio": 89.99,
+        "stock": 8
+    },
+    {
+        "id_producto": "P001",
+        "nombre": "Panel Solar 300W",
+        "precio": 450.0,
+        "stock": 5,
+        "potencia_w": 300,
+        "eficiencia_porcentaje": 21.5
+    },
+    {
+        "id_producto": "P002",
+        "nombre": "Panel Solar 450W Bifacial",
+        "precio": 620.0,
+        "stock": 3,
+        "potencia_w": 450,
+        "eficiencia_porcentaje": 22.3
+    }
+]
