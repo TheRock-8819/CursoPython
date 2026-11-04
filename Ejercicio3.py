@@ -10,8 +10,7 @@ from __future__ import annotations
 import unittest
 from typing import Any
 
-# Integración opcional con Django: si no está instalado se usa un render
-# mínimo compatible para permitir pruebas/ejecución local.
+# Fallback para entornos sin Django: permite importar/ejecutar el módulo localmente.
 try:
     from django.shortcuts import render as django_render
 except Exception:  # pragma: no cover - entorno sin Django
@@ -20,18 +19,7 @@ except Exception:  # pragma: no cover - entorno sin Django
 
 
 def calcular_emisiones_carbono(consumo_kwh: float, factor_emision: float = 0.4) -> float:
-    """Calcula las emisiones de carbono a partir del consumo energético.
-
-    Args:
-        consumo_kwh: Consumo de energía en kWh.
-        factor_emision: Factor de emisión (kg CO2 / kWh). Por defecto 0.4.
-
-    Returns:
-        Emisiones de carbono calculadas.
-
-    Raises:
-        ValueError: Si ``consumo_kwh`` es negativo.
-    """
+    """Calcula las emisiones de carbono a partir del consumo energético."""
     if consumo_kwh < 0:
         raise ValueError("El consumo en kWh no puede ser negativo.")
     return consumo_kwh * factor_emision
@@ -56,27 +44,13 @@ class TestCalculoEmisiones(unittest.TestCase):
 
 
 def obtener_metricas_consumo(registros: list[dict[str, Any]]) -> dict[str, Any]:
-    """Procesa un historial de plantas industriales y calcula métricas.
-
-    Para cada registro se calcula la emisión invocando
-    :func:`calcular_emisiones_carbono`. Se obtiene el total global de
-    emisiones y se determina la planta de mayor consumo.
-
-    Cada registro puede incluir las claves ``planta``/``nombre``, ``consumo_kwh``/
-    ``consumo`` y ``factor_emision``/``factor``.
-
-    Returns:
-        Diccionario con:
-        - ``emisiones_por_planta``: lista con el detalle por planta.
-        - ``total_emisiones``: suma global de emisiones.
-        - ``planta_mayor_consumo``: nombre de la planta de mayor consumo.
-    """
+    """Procesa un historial de plantas industriales y calcula métricas."""
     emisiones_por_planta: list[dict[str, Any]] = []
     total_emisiones: float = 0.0
-
     planta_mayor: dict[str, Any] | None = None
 
     for registro in registros:
+        # Se aceptan variantes de clave para no acoplar el procesador a un esquema único.
         planta = registro.get("planta", registro.get("nombre", registro.get("id", "Sin nombre")))
         consumo = float(registro.get("consumo_kwh", registro.get("consumo", 0.0)))
         factor = float(registro.get("factor_emision", registro.get("factor", 0.4)))
@@ -92,6 +66,7 @@ def obtener_metricas_consumo(registros: list[dict[str, Any]]) -> dict[str, Any]:
         emisiones_por_planta.append(detalle)
         total_emisiones += emision
 
+        # Primer registro o consumo estrictamente mayor: actualiza la planta líder.
         if planta_mayor is None or consumo > float(planta_mayor.get("consumo_kwh", 0.0)):
             planta_mayor = detalle
 
@@ -103,11 +78,7 @@ def obtener_metricas_consumo(registros: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def vista_panel_sustentabilidad(request: Any) -> Any:
-    """Vista de Django que renderiza el panel de sustentabilidad.
-
-    Invoca :func:`obtener_metricas_consumo` con un historial simulado y
-    retorna el renderizado de la plantilla ``sustentabilidad/panel.html``.
-    """
+    """Vista de Django que renderiza el panel de sustentabilidad."""
     historial_simulado: list[dict[str, Any]] = [
         {"planta": "Planta A", "consumo_kwh": 1200.0, "factor_emision": 0.4},
         {"planta": "Planta B", "consumo_kwh": 850.0, "factor_emision": 0.35},
@@ -127,5 +98,4 @@ __all__ = [
 
 
 if __name__ == "__main__":
-    # Ejecuta la suite de pruebas unitarias por consola antes del despliegue.
     unittest.main(verbosity=2)

@@ -19,14 +19,7 @@ class StockInvalidoError(Exception):
 
 
 class DispositivoEcologico:
-    """Representa un dispositivo ecológico genérico del catálogo.
-
-    Attributes:
-        id_producto: Identificador único del producto.
-        nombre: Nombre comercial del dispositivo.
-        precio: Precio unitario del dispositivo.
-        stock: Cantidad disponible en inventario (no negativa).
-    """
+    """Representa un dispositivo ecológico genérico del catálogo."""
 
     def __init__(
         self,
@@ -38,12 +31,12 @@ class DispositivoEcologico:
         self.id_producto = id_producto
         self.nombre = nombre
         self.precio = precio
-        # Se asigna a través del setter para validar la regla de negocio.
+        # Se asigna vía property para disparar la validación de negocio.
         self.stock = stock
 
     @property
     def stock(self) -> int:
-        """Cantidad disponible en inventario (solo lectura externa)."""
+        """Cantidad disponible en inventario."""
         return self._stock
 
     @stock.setter
@@ -73,12 +66,7 @@ class DispositivoEcologico:
 
 
 class PanelSolar(DispositivoEcologico):
-    """Panel solar, especialización de :class:`DispositivoEcologico`.
-
-    Attributes:
-        potencia_w: Potencia nominal en vatios.
-        eficiencia_porcentaje: Eficiencia de conversión en porcentaje.
-    """
+    """Panel solar, especialización de :class:`DispositivoEcologico`."""
 
     def __init__(
         self,
@@ -104,6 +92,7 @@ class PanelSolar(DispositivoEcologico):
     def to_dict(self) -> dict[str, Any]:
         """Convierte el panel solar a diccionario para serialización JSON."""
         datos = super().to_dict()
+        # Se extiende el diccionario base en lugar de redefinirlo completo.
         datos.update(
             {
                 "potencia_w": self.potencia_w,
@@ -121,15 +110,8 @@ class GestorInventario:
         lista_dispositivos: list[DispositivoEcologico],
         ruta_archivo: str | Path,
     ) -> None:
-        """Serializa una lista de dispositivos a un archivo JSON.
-
-        Args:
-            lista_dispositivos: Dispositivos a persistir.
-            ruta_archivo: Ruta del archivo de destino.
-
-        Raises:
-            OSError: Si ocurre un error de E/S al escribir el archivo.
-        """
+        """Serializa una lista de dispositivos a un archivo JSON."""
+        # Fallback defensivo: solo serializa objetos que expongan to_dict().
         datos = [
             dispositivo.to_dict() if hasattr(dispositivo, "to_dict") else {}
             for dispositivo in lista_dispositivos
@@ -149,27 +131,19 @@ __all__ = [
 
 
 if __name__ == "__main__":
-    # --- Demostración de captura controlada de StockInvalidoError ---
     print("=== Validación de regla de negocio (stock) ===")
 
-    # Intento de instanciación con stock negativo.
     try:
-        dispositivo_invalido = DispositivoEcologico(
-            "D-INVALIDO", "Dispositivo Inválido", 99.99, -3
-        )
+        DispositivoEcologico("D-INVALIDO", "Dispositivo Inválido", 99.99, -3)
     except StockInvalidoError as error:
         print(f"Capturado al instanciar: {error}")
 
-    # Intento de modificación con stock negativo.
     try:
-        panel_temporal = PanelSolar(
-            "P-TEMP", "Panel Temporal", 200.0, 2, 100, 15.0
-        )
+        panel_temporal = PanelSolar("P-TEMP", "Panel Temporal", 200.0, 2, 100, 15.0)
         panel_temporal.stock = -1
     except StockInvalidoError as error:
         print(f"Capturado al modificar: {error}")
 
-    # --- Catálogo de productos válidos ---
     print("\n=== Fichas técnicas (polimorfismo) ===")
     catalogo: list[DispositivoEcologico] = [
         DispositivoEcologico("D001", "Sensor de Humedad Eco", 120.50, 15),
@@ -181,7 +155,6 @@ if __name__ == "__main__":
     for producto in catalogo:
         print(producto.generar_ficha_tecnica())
 
-    # --- Persistencia en disco ---
     ruta_catalogo = "catalogo_ecotech.json"
     GestorInventario.guardar_catalogo_json(catalogo, ruta_catalogo)
     print(f"\nCatálogo exportado exitosamente a '{ruta_catalogo}'.")
