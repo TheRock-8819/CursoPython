@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <title>Panel de Sustentabilidad</title>
+</head>
+<body>
+    <h1>Panel de Sustentabilidad</h1>
+    <p>Total de emisiones: {{ total_emisiones }}</p>
+    <p>Planta de mayor consumo: {{ planta_mayor_consumo }}</p>
+    <ul>
+        {% for item in emisiones_por_planta %}
+        <li>{{ item.planta }} - {{ item.emisiones }} kg CO2</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

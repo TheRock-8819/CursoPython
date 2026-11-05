@@ -1,0 +1,8 @@
+# Entornos y archivos generados
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+db.sqlite3

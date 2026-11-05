@@ -48,12 +48,15 @@ class DispositivoEcologico:
             )
         self._stock = valor
 
-    def generar_ficha_tecnica(self) -> str:
+    def obtener_ficha_tecnica(self) -> str:
         """Genera una cadena con los datos básicos del dispositivo."""
         return (
             f"ID: {self.id_producto} | Nombre: {self.nombre} | "
             f"Precio: {self.precio:.2f} | Stock: {self.stock}"
         )
+
+    # Alias para compatibilidad con la consigna original.
+    generar_ficha_tecnica = obtener_ficha_tecnica
 
     def to_dict(self) -> dict[str, Any]:
         """Convierte el dispositivo a diccionario para serialización JSON."""
@@ -79,15 +82,20 @@ class PanelSolar(DispositivoEcologico):
     ) -> None:
         super().__init__(id_producto, nombre, precio, stock)
         self.potencia_w = potencia_w
+        # Alias de compatibilidad con el nombre usado en la rúbrica.
+        self.potencia_watts = self.potencia_w
         self.eficiencia_porcentaje = eficiencia_porcentaje
 
-    def generar_ficha_tecnica(self) -> str:
+    def obtener_ficha_tecnica(self) -> str:
         """Ficha técnica polimórfica con datos específicos del panel solar."""
-        base = super().generar_ficha_tecnica()
+        base = super().obtener_ficha_tecnica()
         return (
             f"{base} | Potencia: {self.potencia_w} W | "
             f"Eficiencia: {self.eficiencia_porcentaje:.1f}%"
         )
+
+    # Alias para compatibilidad con la consigna original.
+    generar_ficha_tecnica = obtener_ficha_tecnica
 
     def to_dict(self) -> dict[str, Any]:
         """Convierte el panel solar a diccionario para serialización JSON."""
