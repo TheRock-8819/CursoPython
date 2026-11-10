@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-import os
 import sys
-
-# Permite importar Ejercicio3.py desde la raíz del repositorio.
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-if BASE_DIR not in sys.path:
-    sys.path.insert(0, BASE_DIR)
-
-from Ejercicio3 import obtener_metricas_consumo
+from pathlib import Path
 
 from django.shortcuts import render
+
+# Ejercicio3.py está en la raíz del repositorio, fuera del paquete Django.
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+if str(REPOSITORY_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPOSITORY_ROOT))
+
+from Ejercicio3 import obtener_metricas_consumo
 
 
 def vista_panel_sustentabilidad(request):

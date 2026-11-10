@@ -55,12 +55,10 @@ class DispositivoEcologico:
             f"Precio: {self.precio:.2f} | Stock: {self.stock}"
         )
 
-    # Alias para compatibilidad con la consigna original.
-    generar_ficha_tecnica = obtener_ficha_tecnica
-
     def to_dict(self) -> dict[str, Any]:
         """Convierte el dispositivo a diccionario para serialización JSON."""
         return {
+            "tipo": "dispositivo_ecologico",
             "id_producto": self.id_producto,
             "nombre": self.nombre,
             "precio": self.precio,
@@ -82,8 +80,6 @@ class PanelSolar(DispositivoEcologico):
     ) -> None:
         super().__init__(id_producto, nombre, precio, stock)
         self.potencia_w = potencia_w
-        # Alias de compatibilidad con el nombre usado en la rúbrica.
-        self.potencia_watts = self.potencia_w
         self.eficiencia_porcentaje = eficiencia_porcentaje
 
     def obtener_ficha_tecnica(self) -> str:
@@ -94,15 +90,13 @@ class PanelSolar(DispositivoEcologico):
             f"Eficiencia: {self.eficiencia_porcentaje:.1f}%"
         )
 
-    # Alias para compatibilidad con la consigna original.
-    generar_ficha_tecnica = obtener_ficha_tecnica
-
     def to_dict(self) -> dict[str, Any]:
         """Convierte el panel solar a diccionario para serialización JSON."""
         datos = super().to_dict()
         # Se extiende el diccionario base en lugar de redefinirlo completo.
         datos.update(
             {
+                "tipo": "panel_solar",
                 "potencia_w": self.potencia_w,
                 "eficiencia_porcentaje": self.eficiencia_porcentaje,
             }
@@ -161,7 +155,7 @@ if __name__ == "__main__":
     ]
 
     for producto in catalogo:
-        print(producto.generar_ficha_tecnica())
+        print(producto.obtener_ficha_tecnica())
 
     ruta_catalogo = "catalogo_ecotech.json"
     GestorInventario.guardar_catalogo_json(catalogo, ruta_catalogo)

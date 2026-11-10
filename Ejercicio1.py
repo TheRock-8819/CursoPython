@@ -7,12 +7,10 @@ resúmenes estadísticos (alertas y promedio térmico).
 from __future__ import annotations
 
 from collections.abc import Mapping
+import re
 from typing import Any
 
 UBICACION_POR_DEFECTO: str = "Sin asignar"
-TEMPERATURA_POR_DEFECTO: float = 0.0
-
-
 def _normalizar_temperatura(valor: Any) -> float:
     """Convierte un valor crudo de temperatura a ``float``.
 
@@ -30,17 +28,14 @@ def _normalizar_temperatura(valor: Any) -> float:
     if not texto:
         raise ValueError(f"La temperatura está vacía: {valor!r}")
 
-    # Eliminación robusta de sufijos de unidad y espacios.
-    texto = texto.replace("°C", "").replace("°c", "").replace("° C", "")
-    texto = texto.replace("C", "").replace("c", "").strip()
-
-    # Soporte para coma decimal (formato regional).
-    texto = texto.replace(",", ".")
-
-    try:
-        return float(texto)
-    except ValueError as exc:
-        raise ValueError(f"No se pudo convertir la temperatura {valor!r} a float.") from exc
+    coincidencia = re.fullmatch(
+        r"\s*([+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+))\s*(?:(?:°|º)?\s*C|C\s*(?:°|º)|grados?)?\s*",
+        str(valor),
+        flags=re.IGNORECASE,
+    )
+    if not coincidencia:
+        raise ValueError(f"No se pudo convertir la temperatura {valor!r} a float.")
+    return float(coincidencia.group(1).replace(",", "."))
 
 
 def limpiar_registro_sensor(registro_raw: Mapping[str, Any]) -> dict[str, Any]:
@@ -50,7 +45,9 @@ def limpiar_registro_sensor(registro_raw: Mapping[str, Any]) -> dict[str, Any]:
 
     sensor_id_limpio = str(registro_raw.get("sensor_id", "")).strip()
 
-    temperatura_raw = registro_raw.get("temperatura", TEMPERATURA_POR_DEFECTO)
+    if "temperatura" not in registro_raw:
+        raise ValueError("El registro no contiene una temperatura.")
+    temperatura_raw = registro_raw["temperatura"]
     temperatura_float = _normalizar_temperatura(temperatura_raw)
 
     # None o texto vacío tras strip se consideran "sin ubicación".
@@ -100,7 +97,6 @@ def generar_resumen_sensores(
 
 __all__ = [
     "UBICACION_POR_DEFECTO",
-    "TEMPERATURA_POR_DEFECTO",
     "limpiar_registro_sensor",
     "generar_resumen_sensores",
 ]
@@ -115,7 +111,12 @@ if __name__ == "__main__":
         {"sensor_id": "SENSOR-005", "temperatura": "22,3c", "ubicacion": "Planta Sur"},
     ]
 
-    sensores_limpios = [limpiar_registro_sensor(registro) for registro in registros_crudos]
+    sensores_limpios = []
+    for registro in registros_crudos:
+        try:
+            sensores_limpios.append(limpiar_registro_sensor(registro))
+        except (TypeError, ValueError) as error:
+            print(f"Registro inválido omitido: {error}")
     umbral_alerta: float = 25.0
     alertas, promedio = generar_resumen_sensores(sensores_limpios, umbral_alerta)
 
